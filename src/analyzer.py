@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pandas as pd
 
-
 STOP_LOSS_THRESHOLDS = [-0.03, -0.05, -0.08, -0.10]
 
 
@@ -65,13 +64,91 @@ def stop_loss_simulation(prices: pd.DataFrame, buy_price: float) -> list[dict]:
     return rows
 
 
-def analyze_many(trades: pd.DataFrame, price_loader) -> pd.DataFrame:
+def compare_with_benchmark(stock_series: pd.DataFrame, benchmark_prices: pd.DataFrame) -> dict:
+    if stock_series.empty or benchmark_prices.empty:
+        raise ValueError("没有可用于基准比较的数据。")
+
+    stock = stock_series[["trade_date", "return_rate"]].rename(
+        columns={"return_rate": "stock_return"}
+    )
+    bench = benchmark_prices.copy().sort_values("trade_date")
+    bench = bench[bench["trade_date"].isin(stock["trade_date"])]
+    if bench.empty:
+        raise ValueError("基准数据与个股持有期没有重合交易日。")
+    base_close = float(bench.iloc[0]["close"])
+    bench = bench.assign(benchmark_return=bench["close"] / base_close - 1)
+    merged = stock.merge(bench[["trade_date", "benchmark_return"]], on="trade_date", how="inner")
+    if merged.empty:
+        raise ValueError("基准数据与个股持有期没有重合交易日。")
+
+    stock_final = float(merged.iloc[-1]["stock_return"])
+    benchmark_final = float(merged.iloc[-1]["benchmark_return"])
+    excess = stock_final - benchmark_final
+    return {
+        "stock_return": stock_final,
+        "benchmark_return": benchmark_final,
+        "excess_return": excess,
+        "outperformed": excess > 0,
+        "series": merged,
+    }
+
+
+def analyze_many(trades: pd.DataFrame, price_loader, benchmark_loader=None) -> pd.DataFrame:
     rows = []
     for trade in trades.to_dict("records"):
         try:
             prices = price_loader(trade["code"], trade["buy_date"], trade["end_date"])
-            analysis = analyze_trade(prices, float(trade["buy_price"]), int(trade["quantity"]), trade["buy_date"])
-            rows.append({**trade, **{k: v for k, v in analysis.items() if k not in ("series", "stop_loss")}})
+            analysis = analyze_trade(
+                prices, float(trade["buy_price"]), int(trade["quantity"]), trade["buy_date"]
+            )
+            result = {
+                **trade,
+                **{k: v for k, v in analysis.items() if k not in ("series", "stop_loss")},
+            }
+            if benchmark_loader:
+                benchmark = benchmark_loader(trade["buy_date"], trade["end_date"])
+                comparison = compare_with_benchmark(analysis["series"], benchmark)
+                result.update({k: v for k, v in comparison.items() if k != "series"})
+            rows.append(result)
         except Exception:
-            rows.append({**trade, "final_return": None, "max_floating_loss": None})
+            rows.append(
+                {
+                    **trade,
+                    "final_return": None,
+                    "max_floating_loss": None,
+                    "excess_return": None,
+                }
+            )
     return pd.DataFrame(rows)
+
+
+def tag_statistics(analyzed_trades: pd.DataFrame, tags: pd.DataFrame) -> pd.DataFrame:
+    if analyzed_trades.empty or tags.empty:
+        return pd.DataFrame(
+            columns=[
+                "tag",
+                "trade_count",
+                "win_rate",
+                "average_return",
+                "average_max_floating_loss",
+                "average_excess_return",
+            ]
+        )
+    merged = tags.merge(analyzed_trades, left_on="trade_id", right_on="id", how="inner")
+    if merged.empty:
+        return pd.DataFrame()
+    return (
+        merged.groupby("tag")
+        .agg(
+            trade_count=("id", "count"),
+            win_rate=(
+                "final_return",
+                lambda s: (s.dropna() > 0).mean() if not s.dropna().empty else None,
+            ),
+            average_return=("final_return", "mean"),
+            average_max_floating_loss=("max_floating_loss", "mean"),
+            average_excess_return=("excess_return", "mean"),
+        )
+        .reset_index()
+        .sort_values(["trade_count", "average_return"], ascending=[False, False])
+    )

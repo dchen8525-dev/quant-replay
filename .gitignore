@@ -3,3 +3,5 @@ __pycache__/
 data/*.db
 streamlit*.log
 .streamlit/
+.pytest_cache/
+.ruff_cache/

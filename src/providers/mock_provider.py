@@ -12,7 +12,9 @@ class MockProvider(DataProvider):
     def fetch_daily(self, code: str, start_date: str, end_date: str) -> pd.DataFrame:
         dates = pd.bdate_range(iso_date(start_date), iso_date(end_date))
         if dates.empty:
-            return pd.DataFrame(columns=["trade_date", "open", "high", "low", "close", "volume", "amount"])
+            return pd.DataFrame(
+                columns=["trade_date", "open", "high", "low", "close", "volume", "amount"]
+            )
 
         base = 20 + (int(code[-2:]) if str(code).isdigit() else 10) / 10
         rows = []

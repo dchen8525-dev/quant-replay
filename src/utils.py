@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from datetime import date, datetime
 
-
 SH_PREFIXES = ("600", "601", "603", "605", "688")
 SZ_PREFIXES = ("000", "001", "002", "003", "300", "301")
 

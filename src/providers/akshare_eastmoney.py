@@ -23,7 +23,9 @@ class AkshareEastmoneyProvider(DataProvider):
 
     def _normalize(self, raw: pd.DataFrame) -> pd.DataFrame:
         if raw is None or raw.empty:
-            return pd.DataFrame(columns=["trade_date", "open", "high", "low", "close", "volume", "amount"])
+            return pd.DataFrame(
+                columns=["trade_date", "open", "high", "low", "close", "volume", "amount"]
+            )
 
         df = raw.copy().rename(
             columns={
@@ -44,4 +46,6 @@ class AkshareEastmoneyProvider(DataProvider):
         df["trade_date"] = df["trade_date"].map(iso_date)
         for col in ["open", "high", "low", "close", "volume", "amount"]:
             df[col] = pd.to_numeric(df[col], errors="coerce")
-        return df.dropna(subset=["trade_date", "open", "high", "low", "close"]).sort_values("trade_date")
+        return df.dropna(subset=["trade_date", "open", "high", "low", "close"]).sort_values(
+            "trade_date"
+        )

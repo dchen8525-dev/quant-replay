@@ -1,688 +1,681 @@
-这里直接给你可用的 `AGENTS.md` 内容，你复制保存即可。
-
 # AGENTS.md
 
-## Project Name
+## Project
 
 QuantReplay
 
----
-
-# Project Goal
-
-Build a local A-share simulated trading replay and quant-learning tool.
-
-The system should allow users to:
-
-* manually input simulated buy trades
-* fetch historical A-share price data
-* replay later market behavior
-* analyze profit/loss
-* analyze drawdown
-* compare with benchmark/index
-* gradually learn quant trading through statistical feedback
-
-This is NOT a real-money trading system.
-
-The focus is:
+Repository:
 
 ```text
-Quant learning
-Trading replay
-Behavior analysis
-Statistical feedback
+https://github.com/dchen8525-dev/quant-replay.git
 ```
 
----
+## Current Status
 
-# Core Product Philosophy
+The project already has a working V1 foundation:
 
-The system is essentially:
+* Streamlit app
+* SQLite database
+* simulated trade flow
+* daily A-share data cache
+* provider abstraction
+* Tencent AKShare provider
+* Eastmoney AKShare provider
+* Mock provider
+* analyzer module
+* charts module
+* watchlist
+* data diagnostics page
 
-```text
-Trading Journal
-+
-Simulated Trading Replay
-+
-Quant Learning System
-```
+Do NOT rewrite the whole project.
 
-The goal is NOT predicting the future.
-
-The goal IS:
-
-```text
-Record decisions
-Replay outcomes
-Analyze behavior
-Discover statistical edge
-```
+This phase should improve stability, correctness, and learning value.
 
 ---
 
-# Tech Stack
+# Phase 2 Goal
+
+Turn the current prototype into a more reliable quant-learning replay tool.
+
+Focus on:
+
+1. data correctness
+2. test coverage
+3. benchmark comparison
+4. trade review statistics
+5. import/export
+6. better UX and error handling
+
+---
+
+# Priority 1: Add Tests
+
+Add a test framework.
 
 Use:
 
-* Python 3.12
-* Streamlit
-* pandas
-* SQLite
-* AKShare
-* plotly
-
-DO NOT use:
-
-* FastAPI
-* React
-* PostgreSQL
-* Redis
-* Kafka
-* Docker
-* Go
-* Real broker APIs
-
-Keep V1 lightweight and local-first.
-
----
-
-# Important Network / Data Source Decision
-
-The user's environment has SSL issues when using:
-
-```python
-ak.stock_zh_a_hist()
+```text
+pytest
 ```
 
-The Eastmoney HTTPS source fails with:
+Update `requirements.txt`:
+
+```txt
+pytest
+```
+
+Create:
 
 ```text
-SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC
+tests/
+├── test_utils.py
+├── test_analyzer.py
+├── test_database.py
+├── test_data_fetcher.py
+└── test_providers.py
 ```
 
-But Tencent provider works:
+## Required Tests
 
-```python
-ak.stock_zh_a_hist_tx()
-```
+### utils tests
 
-Therefore:
+Test:
 
-## V1 Rules
+* valid A-share codes
+* invalid stock codes
+* symbol conversion:
 
-1. Prefer Tencent provider first.
-2. Eastmoney provider should be optional fallback.
-3. Eastmoney failures must NEVER crash the app.
-4. Build provider abstraction from day one.
-5. Future providers:
+  * `002594 -> sz002594`
+  * `600519 -> sh600519`
+  * `688981 -> sh688981`
+  * `300750 -> sz300750`
+* date normalization:
 
-   * Baostock
-   * Tushare
+  * `20260501`
+  * `2026-05-01`
 
----
+### analyzer tests
 
-# Data Provider Architecture
-
-Implement provider abstraction.
-
-## Base Interface
-
-```python
-class DataProvider:
-    def fetch_daily(
-        self,
-        code: str,
-        start_date: str,
-        end_date: str
-    ) -> pd.DataFrame:
-        raise NotImplementedError
-```
-
----
-
-# Providers
-
-Implement:
-
-```text
-AkshareTencentProvider
-AkshareEastmoneyProvider
-MockProvider
-```
-
-Optional later:
-
-```text
-BaostockProvider
-TushareProvider
-```
-
----
-
-# Tencent Provider
-
-Use:
-
-```python
-ak.stock_zh_a_hist_tx(
-    symbol="sz002594",
-    start_date="20260501",
-    end_date="20260601",
-    adjust="qfq"
-)
-```
-
----
-
-# Symbol Conversion Rules
-
-```text
-600xxx -> sh
-601xxx -> sh
-603xxx -> sh
-605xxx -> sh
-688xxx -> sh
-
-000xxx -> sz
-001xxx -> sz
-002xxx -> sz
-003xxx -> sz
-300xxx -> sz
-301xxx -> sz
-```
-
----
-
-# Internal Unified Schema
-
-Normalize all providers into:
-
-```python
-{
-    "trade_date": "",
-    "open": 0,
-    "high": 0,
-    "low": 0,
-    "close": 0,
-    "volume": 0
-}
-```
-
----
-
-# File Structure
-
-```text
-quant-replay/
-├── app.py
-├── requirements.txt
-├── README.md
-├── data/
-│   └── quant_replay.db
-└── src/
-    ├── __init__.py
-    ├── database.py
-    ├── data_fetcher.py
-    ├── analyzer.py
-    ├── charts.py
-    ├── utils.py
-    ├── models.py
-    └── providers/
-        ├── __init__.py
-        ├── base.py
-        ├── akshare_tencent.py
-        ├── akshare_eastmoney.py
-        └── mock_provider.py
-```
-
----
-
-# Database Schema
-
-Use SQLite.
-
-## stocks
-
-```sql
-CREATE TABLE IF NOT EXISTS stocks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT UNIQUE NOT NULL,
-    name TEXT,
-    industry TEXT,
-    created_at TEXT
-);
-```
-
----
-
-## daily_prices
-
-```sql
-CREATE TABLE IF NOT EXISTS daily_prices (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL,
-    trade_date TEXT NOT NULL,
-    open REAL,
-    high REAL,
-    low REAL,
-    close REAL,
-    volume REAL,
-    amount REAL,
-    source TEXT,
-    adjust TEXT,
-    created_at TEXT,
-    UNIQUE(code, trade_date, adjust)
-);
-```
-
----
-
-## simulated_trades
-
-```sql
-CREATE TABLE IF NOT EXISTS simulated_trades (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT NOT NULL,
-    name TEXT,
-    industry TEXT,
-    buy_date TEXT NOT NULL,
-    actual_start_date TEXT,
-    buy_price REAL NOT NULL,
-    quantity INTEGER NOT NULL,
-    end_date TEXT NOT NULL,
-    reason TEXT,
-    confidence INTEGER,
-    note TEXT,
-    created_at TEXT
-);
-```
-
----
-
-## watchlist
-
-```sql
-CREATE TABLE IF NOT EXISTS watchlist (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    code TEXT UNIQUE NOT NULL,
-    name TEXT,
-    industry TEXT,
-    category TEXT,
-    priority INTEGER,
-    note TEXT,
-    created_at TEXT
-);
-```
-
----
-
-# Seed Watchlist
-
-Insert these core stocks:
-
-```text
-002594 比亚迪
-603129 春风动力
-300866 安克创新
-300896 爱美客
-300666 江丰电子
-300458 全志科技
-601689 拓普集团
-002050 三花智控
-600309 万华化学
-600481 双良节能
-002129 TCL中环
-002049 紫光国微
-300339 润和软件
-600095 湘财股份
-000725 京东方A
-```
-
----
-
-# Streamlit Pages
-
-Use sidebar navigation:
-
-```text
-Dashboard
-New Simulated Trade
-Trade Analysis
-Trade History
-Watchlist
-Data Diagnostics
-```
-
----
-
-# Dashboard Page
-
-Show:
-
-* total trades
-* win rate
-* average return
-* average max floating loss
-* best trade
-* worst trade
-* industry distribution
-* return distribution
-
----
-
-# New Simulated Trade Page
-
-Input fields:
-
-* stock code
-* stock name
-* industry
-* buy date
-* buy price
-* quantity
-* end date
-* buy reason
-* confidence (1~5)
-* note
-
-After submit:
-
-1. save trade
-2. fetch/cache data
-3. calculate analysis
-4. display result immediately
-
----
-
-# Trade Analysis Page
-
-Allow selecting existing trade.
-
-Show:
+Test:
 
 * final return
 * final profit
-* maximum floating profit
-* maximum floating loss
-* maximum drawdown
-* holding days
-* highest price after buy
-* lowest price after buy
+* max floating profit
+* max floating loss
+* max drawdown
 * stop-loss simulation
+* non-trading buy date behavior
+* empty price data
+* invalid buy price
+* invalid quantity
+
+Use deterministic fake price DataFrames.
+
+### database tests
+
+Avoid touching the user's real `data/quant_replay.db`.
+
+Refactor database path so tests can use a temporary SQLite file.
+
+Test:
+
+* init_db
+* seed watchlist
+* save_prices
+* get_prices
+* add_trade
+* get_trades
+* provider_logs
+* cache_summary
+
+### data_fetcher tests
+
+Test:
+
+* cache hit
+* cache miss
+* provider fallback
+* provider failure
+* empty data
+* invalid date range
+* future end date
+
+Use MockProvider or monkeypatch providers.
 
 ---
 
-# Trade History Page
+# Priority 2: Fix Cache Coverage Logic
 
-Display table:
+Current cache logic is too simple.
+
+Problem:
+
+```text
+If cache min_date <= start_date and max_date >= end_date,
+the app assumes the full range is covered.
+```
+
+This can be wrong if there are gaps inside the range.
+
+Improve `cache_covers`.
+
+Because A-shares have weekends, holidays, and suspensions, do NOT require every calendar day.
+
+Instead implement:
+
+```python
+def cache_has_any_data_for_range(code, start_date, end_date, adjust="qfq") -> bool
+```
+
+and:
+
+```python
+def get_cached_range(code, adjust="qfq") -> tuple[str | None, str | None]
+```
+
+Then data fetcher behavior:
+
+1. If no cache, fetch full requested range.
+2. If cache exists but does not cover start, fetch missing left side.
+3. If cache exists but does not cover end, fetch missing right side.
+4. Merge and deduplicate.
+5. Return local data from SQLite.
+
+Do not overcomplicate with exchange calendars in this phase.
+
+---
+
+# Priority 3: Real Benchmark Comparison
+
+README currently says benchmark comparison is a placeholder.
+
+Replace placeholder benchmark comparison with real index data.
+
+Support at least:
+
+```text
+沪深300
+中证500
+创业板指
+上证指数
+深证成指
+```
+
+Suggested mapping:
+
+```python
+BENCHMARKS = {
+    "沪深300": "sh000300",
+    "中证500": "sh000905",
+    "上证指数": "sh000001",
+    "深证成指": "sz399001",
+    "创业板指": "sz399006",
+}
+```
+
+Try AKShare Tencent index data first.
+
+If `stock_zh_a_hist_tx` does not work reliably for indexes, implement a separate index provider using an AKShare index API.
+
+Normalize index data into the same schema:
+
+```text
+trade_date
+open
+high
+low
+close
+volume
+amount
+source
+```
+
+Add database support for benchmark/index prices.
+
+Option A:
+
+Reuse `daily_prices` with code like `sh000300`.
+
+Option B:
+
+Create `index_prices`.
+
+Prefer Option A for simplicity.
+
+## Benchmark Metrics
+
+For each trade:
+
+```text
+stock_return
+benchmark_return
+excess_return = stock_return - benchmark_return
+outperformed = excess_return > 0
+```
+
+Show in Trade Analysis:
+
+* stock final return
+* benchmark final return
+* excess return
+* whether the trade beat benchmark
+
+Show chart:
+
+* stock return curve
+* benchmark return curve
+
+---
+
+# Priority 4: Trade Tags and Review Statistics
+
+The project should become a quant-learning journal, not just a PnL calculator.
+
+Add trade tags.
+
+Examples:
+
+```text
+放量突破
+缩量回踩
+MA20突破
+行业强势
+财报超预期
+题材追高
+低吸
+趋势跟随
+均值回归
+情绪交易
+```
+
+## Database Change
+
+Add table:
+
+```sql
+CREATE TABLE IF NOT EXISTS trade_tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    trade_id INTEGER NOT NULL,
+    tag TEXT NOT NULL,
+    created_at TEXT,
+    UNIQUE(trade_id, tag)
+);
+```
+
+Add functions:
+
+```python
+add_trade_tags(trade_id: int, tags: list[str]) -> None
+get_trade_tags(trade_id: int) -> list[str]
+get_all_trade_tags() -> pd.DataFrame
+```
+
+## UI Changes
+
+In New Simulated Trade page:
+
+* add multi-select tags
+* allow custom tags
+
+In Trade Analysis page:
+
+* show tags
+
+In Dashboard:
+
+Add statistics by tag:
+
+```text
+tag
+trade_count
+win_rate
+average_return
+average_max_floating_loss
+average_excess_return
+```
+
+This is very important.
+
+The user should learn:
+
+```text
+Which buy reasons/tags are actually working?
+```
+
+---
+
+# Priority 5: Import / Export
+
+Add local import/export so the user can back up and analyze data outside the app.
+
+## Export
+
+Add buttons:
+
+* Export trades CSV
+* Export watchlist CSV
+* Export price cache CSV
+* Export full SQLite database backup
+
+## Import
+
+Support:
+
+* import watchlist CSV
+* import simulated trades CSV
+
+Do validation before insert.
+
+Required CSV fields for trades:
 
 ```text
 code
 name
+industry
 buy_date
 buy_price
 quantity
 end_date
-final_return
-max_floating_loss
 reason
 confidence
-```
-
----
-
-# Watchlist Page
-
-Support categories:
-
-```text
-新能源
-汽车链
-AI/半导体
-消费成长
-周期化工
-金融情绪
-光伏
-机器人/设备
-其他
-```
-
-Allow:
-
-* add stock
-* remove stock
-* edit notes
-* set priority
-
----
-
-# Data Diagnostics Page
-
-Very important.
-
-Display:
-
-* Tencent provider status
-* Eastmoney provider status
-* latest fetched rows
-* cache status
-* provider error logs
-
-Eastmoney SSL failure must NEVER crash app.
-
----
-
-# Required Analysis Metrics
-
-## Final Return
-
-```python
-(final_close - buy_price) / buy_price
-```
-
----
-
-## Final Profit
-
-```python
-(final_close - buy_price) * quantity
-```
-
----
-
-## Maximum Floating Profit
-
-```python
-(max_high_after_buy - buy_price) / buy_price
-```
-
----
-
-## Maximum Floating Loss
-
-```python
-(min_low_after_buy - buy_price) / buy_price
-```
-
----
-
-## Maximum Drawdown
-
-```python
-running_max = close.cummax()
-drawdown = close / running_max - 1
-max_drawdown = drawdown.min()
-```
-
----
-
-# Stop-Loss Simulation
-
-Simulate:
-
-```text
--3%
--5%
--8%
--10%
-```
-
-Example:
-
-```text
-This trade ended with a 6.8% gain.
-
-During the holding period,
-maximum floating loss reached -3.2%.
-
-If stop-loss threshold was 3%,
-the trade would have been stopped out.
-```
-
----
-
-# Charts
-
-Use Plotly.
-
-Required:
-
-1. price line chart
-2. return curve
-3. drawdown curve
-4. buy point marker
-5. benchmark comparison
-
----
-
-# Data Cache Rules
-
-Before remote fetch:
-
-1. check SQLite cache
-2. if cache covers range → use cache
-3. otherwise fetch missing data
-4. normalize
-5. save locally
-
----
-
-# Edge Cases
-
-Handle:
-
-* invalid stock code
-* empty data
-* non-trading buy date
-* suspended stock
-* provider failure
-* Eastmoney SSL failure
-* duplicate rows
-* negative price
-* zero quantity
-* end date before buy date
-* future dates
-
-For non-trading buy date:
-
-```text
-Keep original buy_date
-Use next trading day as actual_start_date
-```
-
----
-
-# requirements.txt
-
-```txt
-streamlit
-pandas
-akshare
-plotly
+note
 ```
 
 Optional:
 
-```txt
-baostock
+```text
+tags
+```
+
+Tags can be comma-separated.
+
+---
+
+# Priority 6: Better Error Handling
+
+Improve user-facing errors.
+
+Do not show raw Python tracebacks in normal UI.
+
+Common cases:
+
+## Invalid stock code
+
+Show:
+
+```text
+股票代码格式错误，请输入 6 位 A股代码，例如 002594。
+```
+
+## No price data
+
+Show:
+
+```text
+没有获取到该时间段的行情数据。可能原因：股票停牌、日期范围错误、数据源暂时不可用。
+```
+
+## Provider failed
+
+Show:
+
+```text
+腾讯数据源失败，已尝试备用数据源。
+```
+
+## Eastmoney SSL failure
+
+Show:
+
+```text
+东方财富数据源在当前网络环境下 SSL 连接失败，已忽略该错误。
+```
+
+## Future date
+
+Show:
+
+```text
+结束日期不能晚于今天。
 ```
 
 ---
 
-# README Requirements
+# Priority 7: Improve Data Diagnostics
 
-README must explain:
+Current diagnostics should be expanded.
 
-* project purpose
-* installation
-* run command
-* provider architecture
-* why Tencent provider is preferred
-* Eastmoney SSL issue
-* roadmap
-* limitations
+Add:
 
-Run command:
+## Provider test panel
+
+Allow input:
+
+```text
+stock code
+start date
+end date
+```
+
+Test:
+
+* Tencent provider
+* Eastmoney provider
+* Mock provider
+
+Show:
+
+```text
+status
+row count
+first date
+last date
+error message
+```
+
+## Cache panel
+
+Show:
+
+```text
+code
+source
+adjust
+rows
+start_date
+end_date
+last_created_at
+```
+
+Add buttons:
+
+* clear cache for selected code
+* clear all provider logs
+* refresh cache summary
+
+---
+
+# Priority 8: Refactor app.py
+
+`app.py` is already functional but should be split for maintainability.
+
+Create:
+
+```text
+src/pages/
+├── __init__.py
+├── dashboard.py
+├── new_trade.py
+├── trade_analysis.py
+├── trade_history.py
+├── watchlist.py
+└── diagnostics.py
+```
+
+Keep `app.py` small:
+
+```python
+def main():
+    init_db()
+    render_sidebar()
+    route_page()
+```
+
+Do this carefully.
+
+Do not break behavior.
+
+---
+
+# Priority 9: Code Quality
+
+Add:
+
+```text
+ruff
+```
+
+Optional but recommended.
+
+Update requirements or dev requirements:
+
+```txt
+ruff
+pytest
+```
+
+Add:
+
+```text
+pyproject.toml
+```
+
+Recommended config:
+
+```toml
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+```
+
+Run:
+
+```bash
+python -m pytest
+python -m ruff check .
+```
+
+---
+
+# Priority 10: README Update
+
+Update README after changes.
+
+Add:
+
+* screenshots section placeholder
+* test command
+* architecture diagram in text
+* provider fallback explanation
+* benchmark comparison explanation
+* tags/statistics explanation
+* import/export explanation
+
+Commands:
 
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
+pytest
 ```
+
+---
+
+# Do Not Implement Yet
+
+Do NOT implement:
+
+* real trading
+* broker login
+* automatic order execution
+* machine learning prediction
+* tick data
+* Level2 order book
+* high-frequency trading
+* distributed architecture
+* cloud deployment
+* user authentication
+
+Keep the app local-first.
 
 ---
 
 # Validation Checklist
 
-After implementation verify:
+Before finishing, verify:
 
 ## App
 
-* app starts successfully
-* SQLite initializes automatically
+* `streamlit run app.py` starts successfully
+* all sidebar pages load
+* database initializes automatically
 
 ## Data
 
-* Tencent provider works
-* cache works
-* duplicate rows handled
+* Tencent provider fetches `002594` successfully
+* Eastmoney failure does not crash app
+* cache works after first fetch
+* cache summary displays correctly
 
 ## Trade Flow
 
 * add simulated trade
-* fetch data
-* calculate metrics
-* render charts
+* analyze trade
+* view trade history
+* view dashboard
+* stop-loss simulation works
 
-## Failure Handling
+## Benchmark
 
-* Eastmoney SSL failure does not crash app
-* invalid stock code handled
-* empty data handled
+* benchmark index data loads
+* benchmark return is calculated
+* excess return is shown
+* comparison chart renders
+
+## Tags
+
+* tags can be added to trade
+* tags show in analysis
+* dashboard shows tag statistics
+
+## Import / Export
+
+* export trades CSV works
+* export watchlist CSV works
+* import watchlist CSV works
+* invalid CSV does not crash app
+
+## Tests
+
+* pytest passes
+* analyzer tests cover core formulas
+* provider fallback tests pass
 
 ---
 
-# V1 Scope
+# Expected Result
 
-Focus ONLY on:
+After this phase, QuantReplay should become a stable local quant-learning tool where the user can:
 
 ```text
-Simulated trading
-Replay
-Profit/loss analysis
-Quant learning
-```
-
-DO NOT implement:
-
-* real trading
-* broker login
-* auto order execution
-* machine learning prediction
-* tick data
-* Level2 order book
-* high frequency trading
-* distributed architecture
-* cloud deployment
-
-```
+record simulated trades
+fetch A-share data reliably
+replay trade outcomes
+compare against benchmarks
+analyze behavior by tags
+export/import data
+trust the calculations through tests
 ```

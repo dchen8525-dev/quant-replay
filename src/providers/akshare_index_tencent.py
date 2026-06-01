@@ -3,20 +3,19 @@ from __future__ import annotations
 import pandas as pd
 
 from src.providers.base import DataProvider
-from src.utils import compact_date, iso_date, to_akshare_symbol
+from src.utils import compact_date, iso_date
 
 
-class AkshareTencentProvider(DataProvider):
-    name = "tencent"
+class AkshareIndexTencentProvider(DataProvider):
+    name = "tencent_index"
 
     def fetch_daily(self, code: str, start_date: str, end_date: str) -> pd.DataFrame:
         import akshare as ak
 
-        raw = ak.stock_zh_a_hist_tx(
-            symbol=to_akshare_symbol(code),
+        raw = ak.stock_zh_index_daily_tx(
+            symbol=code,
             start_date=compact_date(start_date),
             end_date=compact_date(end_date),
-            adjust="qfq",
         )
         return self._normalize(raw)
 
@@ -27,23 +26,24 @@ class AkshareTencentProvider(DataProvider):
             )
 
         df = raw.copy()
-        rename = {
-            "date": "trade_date",
-            "日期": "trade_date",
-            "open": "open",
-            "开盘": "open",
-            "high": "high",
-            "最高": "high",
-            "low": "low",
-            "最低": "low",
-            "close": "close",
-            "收盘": "close",
-            "volume": "volume",
-            "成交量": "volume",
-            "amount": "amount",
-            "成交额": "amount",
-        }
-        df = df.rename(columns={key: value for key, value in rename.items() if key in df.columns})
+        df = df.rename(
+            columns={
+                "date": "trade_date",
+                "日期": "trade_date",
+                "open": "open",
+                "开盘": "open",
+                "high": "high",
+                "最高": "high",
+                "low": "low",
+                "最低": "low",
+                "close": "close",
+                "收盘": "close",
+                "volume": "volume",
+                "成交量": "volume",
+                "amount": "amount",
+                "成交额": "amount",
+            }
+        )
         columns = ["trade_date", "open", "high", "low", "close", "volume", "amount"]
         for col in columns:
             if col not in df.columns:
