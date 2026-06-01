@@ -15,10 +15,20 @@ from src.providers import (
     AkshareTencentProvider,
     MockProvider,
 )
+from src.release import read_version, release_readiness_report
 from src.utils import validate_stock_code
 
 
 def diagnostics_page() -> None:
+    st.subheader("Release Readiness")
+    st.caption(f"当前版本：{read_version()}")
+    release_report = release_readiness_report()
+    st.dataframe(release_report, use_container_width=True, hide_index=True)
+    if (release_report["status"] == "pass").all():
+        st.success("发布检查通过。")
+    else:
+        st.warning("发布检查存在未完成项。")
+
     st.subheader("Provider 测试")
     cols = st.columns(3)
     code = cols[0].text_input("测试代码", value="002594")

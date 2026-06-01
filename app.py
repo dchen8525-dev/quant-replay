@@ -19,6 +19,7 @@ from src.pages.strength import strength_page
 from src.pages.trade_analysis import trade_analysis_page
 from src.pages.trade_history import trade_history_page
 from src.pages.watchlist import watchlist_page
+from src.release import read_version
 
 PAGES = {
     "Dashboard": dashboard_page,
@@ -44,6 +45,7 @@ def main() -> None:
     st.set_page_config(page_title="QuantReplay", layout="wide")
     database.init_db()
     st.title("QuantReplay")
+    st.caption(f"Local research build v{read_version()}")
     page = st.sidebar.radio("页面", list(PAGES))
     PAGES[page]()
 

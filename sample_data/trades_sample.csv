@@ -1,0 +1,3 @@
+code,name,industry,buy_date,actual_start_date,buy_price,quantity,end_date,reason,confidence,note,tags
+002594,比亚迪,新能源,2026-01-05,2026-01-05,210.50,100,2026-02-10,趋势跟随样例,4,样例交易,趋势跟随
+000725,京东方A,电子,2026-01-12,2026-01-12,4.20,1000,2026-02-20,低吸样例,3,样例交易,低吸

@@ -17,13 +17,24 @@ streamlit run app.py
 ```
 
 The SQLite database is created automatically at `data/quant_replay.db`.
+The current local release version is stored in `VERSION`.
 
 ## Test
 
 ```bash
 pytest
 python -m ruff check .
+python -m compileall app.py src tests
 ```
+
+## Sample Data
+
+Starter CSV files are available in `sample_data/`:
+
+- `watchlist_sample.csv`
+- `trades_sample.csv`
+
+They are meant for import workflow testing and local demos. They are not investment recommendations.
 
 ## Architecture
 
@@ -176,7 +187,11 @@ The Market Regime page classifies a selected benchmark into bull trend, bear tre
 
 ## Screenshots
 
-Screenshots will be added after the UI stabilizes.
+Screenshot placeholders and capture guidance live in `docs/screenshots/README.md`.
+
+## Release
+
+Release notes are tracked in `CHANGELOG.md`, and the stable release checklist is in `docs/RELEASE_CHECKLIST.md`. The Data Diagnostics page includes a Release Readiness table that checks release files, sample data, database ignore rules, README status, and obvious committed secrets.
 
 ## Limitations
 
@@ -195,7 +210,7 @@ PHASE_6 ✅ COMPLETED
 PHASE_7 ✅ COMPLETED
 PHASE_8 ✅ COMPLETED
 PHASE_9 ✅ COMPLETED
-PHASE_10 🔄 ACTIVE
+PHASE_10 ✅ COMPLETED
 ```
 
-Next active phase: product polish and stable release preparation.
+Next active phase: none. Stable release preparation is complete.
