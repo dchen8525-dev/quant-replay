@@ -39,6 +39,7 @@ app.py
   -> src/review.py            deterministic trade review reports
   -> src/factors/*            factor library, ranking, IC, quantile evaluation
   -> src/portfolio/*          portfolio construction, exposure, rebalance, risk metrics
+  -> src/strategy_lab/*       strategy registry, parameter grid, walk-forward, experiment history
   -> src/analyzer.py          PnL, drawdown, stop-loss, benchmark, tag stats
   -> src/charts.py            Plotly charts
 ```
@@ -90,6 +91,7 @@ The app supports local backup workflows:
 - Review reports by tag, category, and confidence
 - Factor research: simple technical factors, next-return evaluation, rank IC, quantile returns
 - Portfolio Lab: equal weight, score-weighted, risk-adjusted portfolios, exposure limits, rebalance simulation
+- Strategy Lab: strategy registry, parameter grid search, walk-forward testing, experiment history
 - Historical daily price fetch and SQLite cache
 - Trade analysis: final return, profit, max floating profit/loss, max drawdown, holding days
 - Stop-loss simulation at 3%, 5%, 8%, and 10%
@@ -142,6 +144,18 @@ The Portfolio Lab page builds simple watchlist portfolios using:
 
 It supports max single-position limits, category exposure limits, cash reserve, weekly/monthly/quarterly rebalancing, benchmark comparison, turnover, volatility, max drawdown, Sharpe-like ratio, category exposure, and single-stock exposure.
 
+## Strategy Lab
+
+The Strategy Lab page supports beginner strategy experiments:
+
+- MA Cross
+- Breakout
+- Mean Reversion
+- Strength Rotation
+- Factor Ranking
+
+It runs parameter grid search, train/test walk-forward checks, stores experiment history in SQLite, and shows anti-overfitting warnings for too many parameters, too few trades, very high returns with tiny samples, or missing test periods.
+
 ## Screenshots
 
 Screenshots will be added after the UI stabilizes.
@@ -159,8 +173,8 @@ PHASE_2 ✅ COMPLETED
 PHASE_3 ✅ COMPLETED
 PHASE_4 ✅ COMPLETED
 PHASE_5 ✅ COMPLETED
-PHASE_6 🔄 ACTIVE
-PHASE_7 ⏳ PLANNED
+PHASE_6 ✅ COMPLETED
+PHASE_7 🔄 ACTIVE
 PHASE_8 ⏳ PLANNED
 PHASE_9 ⏳ PLANNED
 PHASE_10 ⏳ PLANNED

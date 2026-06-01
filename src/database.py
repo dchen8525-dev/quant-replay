@@ -132,6 +132,31 @@ def init_db() -> None:
                 note TEXT,
                 created_at TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS experiments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                strategy_name TEXT NOT NULL,
+                params_json TEXT,
+                universe_json TEXT,
+                start_date TEXT,
+                end_date TEXT,
+                benchmark TEXT,
+                created_at TEXT
+            );
+
+            CREATE TABLE IF NOT EXISTS experiment_results (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                experiment_id INTEGER NOT NULL,
+                total_return REAL,
+                benchmark_return REAL,
+                excess_return REAL,
+                max_drawdown REAL,
+                win_rate REAL,
+                trade_count INTEGER,
+                result_json TEXT,
+                created_at TEXT
+            );
             """
         )
         now = datetime.now().isoformat(timespec="seconds")
