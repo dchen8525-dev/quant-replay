@@ -13,8 +13,7 @@ def parameter_grid(grid: dict[str, list]) -> list[dict]:
         return [{}]
     keys = list(grid)
     return [
-        dict(zip(keys, values, strict=False))
-        for values in product(*[grid[key] for key in keys])
+        dict(zip(keys, values, strict=False)) for values in product(*[grid[key] for key in keys])
     ]
 
 

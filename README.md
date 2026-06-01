@@ -40,6 +40,7 @@ app.py
   -> src/factors/*            factor library, ranking, IC, quantile evaluation
   -> src/portfolio/*          portfolio construction, exposure, rebalance, risk metrics
   -> src/strategy_lab/*       strategy registry, parameter grid, walk-forward, experiment history
+  -> src/research/*           markdown/html/csv reports, snapshots, reproducibility metadata
   -> src/analyzer.py          PnL, drawdown, stop-loss, benchmark, tag stats
   -> src/charts.py            Plotly charts
 ```
@@ -92,6 +93,7 @@ The app supports local backup workflows:
 - Factor research: simple technical factors, next-return evaluation, rank IC, quantile returns
 - Portfolio Lab: equal weight, score-weighted, risk-adjusted portfolios, exposure limits, rebalance simulation
 - Strategy Lab: strategy registry, parameter grid search, walk-forward testing, experiment history
+- Research Reports: markdown/html/csv exports, research snapshots, snapshot comparison
 - Historical daily price fetch and SQLite cache
 - Trade analysis: final return, profit, max floating profit/loss, max drawdown, holding days
 - Stop-loss simulation at 3%, 5%, 8%, and 10%
@@ -156,6 +158,10 @@ The Strategy Lab page supports beginner strategy experiments:
 
 It runs parameter grid search, train/test walk-forward checks, stores experiment history in SQLite, and shows anti-overfitting warnings for too many parameters, too few trades, very high returns with tiny samples, or missing test periods.
 
+## Research Reports
+
+The Research Reports page generates local research artifacts for trade review, strategy backtests, factor research, portfolio review, and monthly learning summaries. Reports can be exported as Markdown, HTML, or CSV. Research snapshots are stored in SQLite with stable hashes so runs can be compared later.
+
 ## Screenshots
 
 Screenshots will be added after the UI stabilizes.
@@ -174,8 +180,8 @@ PHASE_3 ✅ COMPLETED
 PHASE_4 ✅ COMPLETED
 PHASE_5 ✅ COMPLETED
 PHASE_6 ✅ COMPLETED
-PHASE_7 🔄 ACTIVE
-PHASE_8 ⏳ PLANNED
+PHASE_7 ✅ COMPLETED
+PHASE_8 🔄 ACTIVE
 PHASE_9 ⏳ PLANNED
 PHASE_10 ⏳ PLANNED
 ```

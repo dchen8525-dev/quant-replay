@@ -157,6 +157,16 @@ def init_db() -> None:
                 result_json TEXT,
                 created_at TEXT
             );
+
+            CREATE TABLE IF NOT EXISTS research_snapshots (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                report_type TEXT NOT NULL,
+                payload_json TEXT,
+                markdown TEXT,
+                snapshot_hash TEXT,
+                created_at TEXT
+            );
             """
         )
         now = datetime.now().isoformat(timespec="seconds")

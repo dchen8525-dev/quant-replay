@@ -10,6 +10,7 @@ from src.pages.diagnostics import diagnostics_page
 from src.pages.factors import factors_page
 from src.pages.new_trade import new_trade_page
 from src.pages.portfolio import portfolio_page
+from src.pages.research import research_page
 from src.pages.review import review_page
 from src.pages.strategy_lab import strategy_lab_page
 from src.pages.strength import strength_page
@@ -26,6 +27,7 @@ PAGES = {
     "Factor Research": factors_page,
     "Portfolio Lab": portfolio_page,
     "Strategy Lab": strategy_lab_page,
+    "Research Reports": research_page,
     "New Simulated Trade": new_trade_page,
     "Trade Analysis": trade_analysis_page,
     "Trade History": trade_history_page,
