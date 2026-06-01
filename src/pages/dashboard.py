@@ -5,6 +5,7 @@ import streamlit as st
 from src import database
 from src.analyzer import analyze_many, tag_statistics
 from src.charts import distribution_chart
+from src.strength import category_strength, rank_strength, stock_strength
 
 
 def dashboard_page() -> None:
@@ -48,3 +49,22 @@ def dashboard_page() -> None:
         st.info("暂无标签统计。")
     else:
         st.dataframe(tag_stats, use_container_width=True, hide_index=True)
+
+    st.subheader("Category Strength")
+    strength_rows = []
+    for item in database.get_watchlist().to_dict("records"):
+        prices = database.get_prices(item["code"], "1900-01-01", "2999-12-31")
+        if prices.empty:
+            continue
+        strength_rows.append(
+            stock_strength(
+                prices,
+                {"code": item["code"], "name": item["name"], "category": item["category"]},
+            )
+        )
+    category_df = category_strength(rank_strength(strength_rows))
+    if category_df.empty:
+        st.info("暂无分类强度数据。")
+    else:
+        st.dataframe(category_df, use_container_width=True, hide_index=True)
+        st.bar_chart(category_df.set_index("category")["average_20d_return"])

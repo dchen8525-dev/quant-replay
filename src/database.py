@@ -118,6 +118,20 @@ def init_db() -> None:
                 created_at TEXT,
                 UNIQUE(trade_id, tag)
             );
+
+            CREATE TABLE IF NOT EXISTS account_transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_name TEXT NOT NULL,
+                trade_date TEXT NOT NULL,
+                action TEXT NOT NULL,
+                code TEXT NOT NULL,
+                name TEXT,
+                price REAL NOT NULL,
+                quantity INTEGER NOT NULL,
+                commission REAL DEFAULT 0,
+                note TEXT,
+                created_at TEXT
+            );
             """
         )
         now = datetime.now().isoformat(timespec="seconds")

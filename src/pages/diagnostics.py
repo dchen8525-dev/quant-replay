@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from src import database
+from src.data_quality import validate_price_df
 from src.pages.common import today
 from src.providers import (
     AkshareEastmoneyProvider,
@@ -52,6 +53,17 @@ def diagnostics_page() -> None:
         st.rerun()
     if right.button("refresh cache summary"):
         st.rerun()
+
+    st.subheader("数据质量")
+    quality_code = st.text_input("质量检查代码", value="002594")
+    if st.button("检查缓存行情质量"):
+        prices = database.get_prices(quality_code.strip(), "1900-01-01", "2999-12-31")
+        warnings = validate_price_df(prices)
+        if warnings:
+            for warning in warnings:
+                st.warning(warning)
+        else:
+            st.success("缓存行情未发现明显质量问题。")
 
     st.subheader("数据库备份")
     if database.DB_PATH.exists():
