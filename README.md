@@ -1,25 +1,26 @@
 # QuantReplay
 
-QuantReplay is a local A-share simulated trading replay and quant-learning tool. It records manual simulated buy trades, caches daily price data, replays later market behavior, runs beginner strategy backtests, tracks a simulated account, ranks watchlist strength, compares trades with indexes, and reports profit/loss, drawdown, floating loss, stop-loss outcomes, and review statistics.
+QuantReplay 是一个本地 A 股模拟交易复盘和量化学习工具。它用于记录手工模拟买入交易，缓存日线行情，复盘后续走势，运行入门级策略回测，跟踪模拟账户，评估自选股强度，比较指数基准，并输出收益、盈亏、回撤、浮盈浮亏、止损模拟和复盘统计。
 
-It is not a real-money trading system and does not connect to broker APIs.
+本项目不是实盘交易系统，不连接券商接口，也不会执行真实交易。
 
-## Install
+## 快速开始
+
+安装依赖：
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Run
+启动应用：
 
 ```bash
 streamlit run app.py
 ```
 
-The SQLite database is created automatically at `data/quant_replay.db`.
-The current local release version is stored in `VERSION`.
+SQLite 数据库会自动创建在 `data/quant_replay.db`。当前本地版本号见 `VERSION`。
 
-## Test
+运行测试：
 
 ```bash
 pytest
@@ -27,51 +28,74 @@ python -m ruff check .
 python -m compileall app.py src tests
 ```
 
-## Sample Data
+## 样例数据
 
-Starter CSV files are available in `sample_data/`:
+`sample_data/` 目录提供用于导入流程测试和本地演示的 CSV 文件：
 
 - `watchlist_sample.csv`
 - `trades_sample.csv`
 
-They are meant for import workflow testing and local demos. They are not investment recommendations.
+这些样例数据不是投资建议。
 
-## Architecture
+## 目录结构
 
 ```text
 app.py
-  -> src/pages/*              Streamlit page rendering
-  -> src/data_fetcher.py      cache-aware provider orchestration
-  -> src/providers/*          Tencent, Eastmoney, index, mock providers
-  -> src/database.py          SQLite persistence, tags, logs, cache
-  -> src/backtest/*           beginner strategy backtesting
-  -> src/account/*            simulated account ledger and metrics
-  -> src/strength.py          watchlist and category strength ranking
-  -> src/review.py            deterministic trade review reports
-  -> src/factors/*            factor library, ranking, IC, quantile evaluation
-  -> src/portfolio/*          portfolio construction, exposure, rebalance, risk metrics
-  -> src/strategy_lab/*       strategy registry, parameter grid, walk-forward, experiment history
-  -> src/research/*           markdown/html/csv reports, snapshots, reproducibility metadata
-  -> src/data_quality/*       data health, repair, provider comparison, observed calendars
-  -> src/regime/*             market regime and category rotation analysis
-  -> src/analyzer.py          PnL, drawdown, stop-loss, benchmark, tag stats
-  -> src/charts.py            Plotly charts
+  -> src/pages/*              Streamlit 页面
+  -> src/data_fetcher.py      带缓存的数据源调度
+  -> src/providers/*          腾讯、东方财富、指数、Mock 数据源
+  -> src/database.py          SQLite 持久化、标签、日志和行情缓存
+  -> src/backtest/*           入门策略回测
+  -> src/account/*            模拟账户流水和指标
+  -> src/strength.py          自选股和分类强度排名
+  -> src/review.py            确定性交易复盘报告
+  -> src/factors/*            因子库、排名、IC、分位收益评估
+  -> src/portfolio/*          组合构建、暴露、再平衡和风险指标
+  -> src/strategy_lab/*       策略注册、参数网格、walk-forward、实验历史
+  -> src/research/*           Markdown/HTML/CSV 报告、快照、可复现元数据
+  -> src/data_quality/*       数据健康、修复、数据源对比、交易日观测
+  -> src/regime/*             市场状态和行业轮动分析
+  -> src/release.py           发布就绪检查
+  -> src/analyzer.py          盈亏、回撤、止损、基准、标签统计
+  -> src/charts.py            Plotly 图表
 ```
 
-## Data Providers
+## 数据源
 
-The app uses a provider abstraction:
+应用使用统一的数据源抽象：
 
 - `AkshareTencentProvider`
 - `AkshareEastmoneyProvider`
 - `AkshareIndexTencentProvider`
 - `MockProvider`
 
-Tencent is preferred because this environment has known SSL failures when using AKShare's Eastmoney-backed `stock_zh_a_hist()`. Eastmoney remains available as an optional fallback and its failures are caught and logged so the app does not crash. The fetcher checks the local SQLite cache first, fetches missing left/right ranges when the requested range extends beyond cached data, then merges and deduplicates rows in SQLite.
+腾讯数据源优先使用。东方财富作为备用数据源保留，失败会被捕获并记录，不会导致应用崩溃。数据获取流程会先检查本地 SQLite 缓存，只拉取缺失的左右区间，然后写入缓存并去重。
 
-## Benchmark Comparison
+## 主要功能
 
-Trade Analysis supports real benchmark comparison for:
+- 新建模拟买入交易。
+- 策略回测：均线交叉、突破、均值回归。
+- 模拟账户：现金、持仓、已实现和未实现盈亏。
+- 自选股强度排名和分类强度分析。
+- 按标签、分类、信心分组的复盘报告。
+- 因子研究：简单技术因子、未来收益评估、rank IC、分位收益。
+- 组合实验：等权、分数加权、风险调整、暴露限制、再平衡模拟。
+- 策略实验室：策略注册、参数网格、walk-forward、实验历史。
+- 研究报告：Markdown/HTML/CSV 导出、研究快照和快照对比。
+- 数据健康：缓存健康、数据源对比、Baostock/Tushare 可选接入。
+- 市场状态：指数趋势、波动、风险偏好标签和行业轮动分析。
+- 历史日线行情获取和 SQLite 缓存。
+- 交易分析：最终收益、盈亏、最大浮盈浮亏、最大回撤、持有天数。
+- 止损模拟：3%、5%、8%、10%。
+- 指数基准比较和超额收益。
+- 交易标签和标签级统计。
+- 交易历史、仪表盘、自选股管理。
+- CSV 导入导出和数据库备份。
+- 数据源诊断、缓存状态、发布就绪检查。
+
+## 基准比较
+
+交易分析支持以下指数基准：
 
 - 沪深300
 - 中证500
@@ -79,91 +103,69 @@ Trade Analysis supports real benchmark comparison for:
 - 深证成指
 - 创业板指
 
-Benchmark data is stored in the same `daily_prices` table using index codes like `sh000300`. The app reports stock return, benchmark return, excess return, and whether the trade outperformed.
+基准数据使用 `sh000300` 这类指数代码存储在同一张 `daily_prices` 表中。应用会展示个股收益、基准收益、超额收益和是否跑赢基准。
 
-## Tags And Review Statistics
+## 标签和复盘统计
 
-Trades can be tagged with common setup labels such as `放量突破`, `低吸`, `趋势跟随`, or custom comma-separated tags. Dashboard aggregates performance by tag so the user can see which trade patterns are working statistically.
+交易可以添加常用形态标签，例如 `放量突破`、`低吸`、`趋势跟随`，也支持自定义逗号分隔标签。Dashboard 会按标签聚合表现，帮助识别哪些交易模式更有效。
 
-## Import / Export
+## 导入导出
 
-The app supports local backup workflows:
+应用支持本地备份工作流：
 
-- export trades CSV
-- import simulated trades CSV
-- export watchlist CSV
-- import watchlist CSV
-- export price cache CSV
-- export full SQLite database backup
+- 导出交易 CSV。
+- 导入模拟交易 CSV。
+- 导出自选股 CSV。
+- 导入自选股 CSV。
+- 导出行情缓存 CSV。
+- 导出完整 SQLite 数据库备份。
 
-## Features
+## 回测
 
-- New simulated buy trade
-- Strategy backtesting: moving average cross, breakout, mean reversion
-- Simulated account ledger with cash, positions, realized/unrealized PnL
-- Watchlist strength ranking and category strength analysis
-- Review reports by tag, category, and confidence
-- Factor research: simple technical factors, next-return evaluation, rank IC, quantile returns
-- Portfolio Lab: equal weight, score-weighted, risk-adjusted portfolios, exposure limits, rebalance simulation
-- Strategy Lab: strategy registry, parameter grid search, walk-forward testing, experiment history
-- Research Reports: markdown/html/csv exports, research snapshots, snapshot comparison
-- Data Health: cache health, provider comparison, optional Baostock/Tushare hooks
-- Market Regime: benchmark trend/volatility/risk labels and category rotation analysis
-- Historical daily price fetch and SQLite cache
-- Trade analysis: final return, profit, max floating profit/loss, max drawdown, holding days
-- Stop-loss simulation at 3%, 5%, 8%, and 10%
-- Benchmark comparison and excess return
-- Trade tags and tag-level statistics
-- Trade history and dashboard summaries
-- Watchlist management
-- CSV import/export and database backup
-- Data diagnostics for provider and cache status
-- Price data quality checks for duplicate dates, missing close, invalid prices, date ordering, and empty ranges
+Strategy Backtest 页面使用日线收盘价生成信号，并在下一个可用交易日开盘价执行交易，避免同一天收盘价同时用于信号和成交。当前版本为多头、单仓位、全仓模型，包含佣金和滑点。
 
-## Backtesting
-
-The Strategy Backtest page uses daily close prices to generate signals and executes trades at the next available trading day's open. This avoids using the same day's close for both signal generation and execution. V1 backtests are long-only, one position at a time, all-in sizing, and include commission and slippage.
-
-Supported beginner strategies:
+支持的入门策略：
 
 - Moving Average Cross
 - Breakout
 - Mean Reversion
 
-## Simulated Account
+## 模拟账户
 
-The Simulated Account page tracks multiple simulated BUY/SELL transactions as one account. It reports cash balance, open positions, account equity, realized PnL, and unrealized PnL. It does not connect to broker APIs.
+Simulated Account 页面把多笔 BUY/SELL 交易作为同一个模拟账户管理，展示现金余额、当前持仓、账户权益、已实现盈亏和未实现盈亏。它不连接券商 API。
 
-## Strength Ranking
+## 强度排名
 
-The Strength Ranking page calculates recent return, volatility, distance from highs, MA trend status, and a transparent 0-100 score for watchlist stocks. Dashboard also shows category strength based on watchlist category.
+Strength Ranking 页面会计算自选股近期收益、波动率、距高点距离、均线趋势状态，并生成透明的 0-100 分强度分数。Dashboard 也会按自选股分类展示分类强度。
 
-## Factor Research
+## 因子研究
 
-The Factor Research page evaluates simple technical factors for watchlist stocks:
+Factor Research 页面评估自选股的简单技术因子：
 
-- momentum_5d, momentum_20d, momentum_60d
-- volatility_20d
-- volume_ratio_5d
-- ma_distance_20d
-- drawdown_from_60d_high
-- turnover_proxy
+- `momentum_5d`
+- `momentum_20d`
+- `momentum_60d`
+- `volatility_20d`
+- `volume_ratio_5d`
+- `ma_distance_20d`
+- `drawdown_from_60d_high`
+- `turnover_proxy`
 
-It reports factor ranking, next 5d/20d returns, rank IC, win rate by factor quantile, and average return by quantile. It uses cached/local price data through the same provider abstraction and does not require financial statement data.
+页面会输出因子排名、未来 5 日和 20 日收益、rank IC、分位胜率和分位平均收益。它使用同一套本地缓存和数据源抽象，不依赖财务报表数据。
 
-## Portfolio Lab
+## 组合实验
 
-The Portfolio Lab page builds simple watchlist portfolios using:
+Portfolio Lab 页面支持基于自选股构建简单组合：
 
-- equal weight
-- score-weighted allocation
-- risk-adjusted allocation
+- 等权重。
+- 分数加权。
+- 风险调整加权。
 
-It supports max single-position limits, category exposure limits, cash reserve, weekly/monthly/quarterly rebalancing, benchmark comparison, turnover, volatility, max drawdown, Sharpe-like ratio, category exposure, and single-stock exposure.
+它支持单票上限、分类暴露上限、现金保留、每周/每月/每季度再平衡、基准比较、换手率、波动率、最大回撤、类 Sharpe 指标、分类暴露和单票暴露。
 
-## Strategy Lab
+## 策略实验室
 
-The Strategy Lab page supports beginner strategy experiments:
+Strategy Lab 页面支持入门策略实验：
 
 - MA Cross
 - Breakout
@@ -171,34 +173,34 @@ The Strategy Lab page supports beginner strategy experiments:
 - Strength Rotation
 - Factor Ranking
 
-It runs parameter grid search, train/test walk-forward checks, stores experiment history in SQLite, and shows anti-overfitting warnings for too many parameters, too few trades, very high returns with tiny samples, or missing test periods.
+它会运行参数网格、训练/测试 walk-forward 检查，保存实验历史，并对参数过多、交易太少、小样本超高收益、缺少测试期等情况给出过拟合警告。
 
-## Research Reports
+## 研究报告
 
-The Research Reports page generates local research artifacts for trade review, strategy backtests, factor research, portfolio review, and monthly learning summaries. Reports can be exported as Markdown, HTML, or CSV. Research snapshots are stored in SQLite with stable hashes so runs can be compared later.
+Research Reports 页面可以生成交易复盘、策略回测、因子研究、组合复盘和月度学习总结等本地研究产物。报告支持导出为 Markdown、HTML 或 CSV。研究快照会存入 SQLite，并带稳定哈希，方便后续对比。
 
-## Data Health
+## 数据健康
 
-The Data Health page compares providers, checks cache coverage, and reports anomalies such as duplicate dates, missing closes, zero or negative prices, non-monotonic dates, and empty ranges. Tencent, Eastmoney, Mock, and optional Baostock providers can be compared. Tushare is optional and only works when `TUSHARE_TOKEN` is configured.
+Data Health 页面用于对比数据源、检查缓存覆盖，并报告重复日期、缺失收盘价、零价或负价、日期非递增、空区间等异常。腾讯、东方财富、Mock 和可选 Baostock 数据源可以用于对比。Tushare 是可选功能，仅在配置 `TUSHARE_TOKEN` 后启用。
 
-## Market Regime
+## 市场状态
 
-The Market Regime page classifies a selected benchmark into bull trend, bear trend, sideways, high/low volatility, and risk-on/risk-off labels using MA20/MA60 position, drawdown from the 60-day high, and 20-day volatility percentile. It also ranks watchlist categories by recent returns and MA20 persistence to highlight strong, weakening, and improving categories.
+Market Regime 页面基于 MA20/MA60、60 日高点回撤和 20 日波动率分位数，把选定指数分类为 bull trend、bear trend、sideways、high/low volatility、risk-on/risk-off 等状态。它也会按近期收益和 MA20 趋势持续性排名自选股分类，标出强势、转弱和改善的分类。
 
-## Screenshots
+## 截图
 
-Screenshot placeholders and capture guidance live in `docs/screenshots/README.md`.
+截图占位和截图建议见 `docs/screenshots/README.md`。
 
-## Release
+## 发布
 
-Release notes are tracked in `CHANGELOG.md`, and the stable release checklist is in `docs/RELEASE_CHECKLIST.md`. The Data Diagnostics page includes a Release Readiness table that checks release files, sample data, database ignore rules, README status, and obvious committed secrets.
+发布记录见 `CHANGELOG.md`，stable release 检查清单见 `docs/RELEASE_CHECKLIST.md`。Data Diagnostics 页面包含 Release Readiness 表，用于检查发布文件、样例数据、数据库忽略规则、README 状态和明显的已提交密钥。
 
-## Limitations
+## 限制
 
-- V1 is local-first and single-user.
-- No real trading, broker login, order execution, tick data, Level2 data, high-frequency trading, or machine learning prediction.
+- 当前版本是本地优先、单用户工具。
+- 不支持真实交易、券商登录、下单执行、tick 数据、Level2 数据、高频交易或机器学习预测。
 
-## Roadmap
+## 路线图
 
 ```text
 PHASE_1 ✅ COMPLETED
@@ -213,4 +215,4 @@ PHASE_9 ✅ COMPLETED
 PHASE_10 ✅ COMPLETED
 ```
 
-Next active phase: none. Stable release preparation is complete.
+下一阶段：无。稳定发布准备已经完成。
