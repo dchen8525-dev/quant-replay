@@ -13,7 +13,7 @@ QuantReplay is a local A-share simulated trading replay and quant-learning tool.
 Current active phase:
 
 ```text
-PHASE_8
+PHASE_9
 ```
 
 Completed phases:
@@ -26,12 +26,13 @@ PHASE_4 ✅ COMPLETED
 PHASE_5 ✅ COMPLETED
 PHASE_6 ✅ COMPLETED
 PHASE_7 ✅ COMPLETED
+PHASE_8 ✅ COMPLETED
 ```
 
 Codex must start from:
 
 ```text
-PHASE_8
+PHASE_9
 ```
 
 Do NOT reimplement completed phases unless required for:
@@ -1079,12 +1080,12 @@ tests/test_research_reports.py
 
 ---
 
-# PHASE_8 — ACTIVE
+# PHASE_8 — COMPLETED
 
 Status:
 
 ```text
-ACTIVE
+COMPLETED
 ```
 
 Goal:
@@ -1158,7 +1159,7 @@ missing prices
 
 ---
 
-# PHASE_9 — PLANNED
+# PHASE_9 — ACTIVE
 
 Status:
 
@@ -1391,15 +1392,15 @@ PHASE_4 ✅ COMPLETED
 PHASE_5 ✅ COMPLETED
 PHASE_6 ✅ COMPLETED
 PHASE_7 ✅ COMPLETED
-PHASE_8 🔄 ACTIVE
-PHASE_9 ⏳ PLANNED
+PHASE_8 ✅ COMPLETED
+PHASE_9 🔄 ACTIVE
 PHASE_10 ⏳ PLANNED
 ```
 
-When finishing PHASE_7:
+When finishing PHASE_8:
 
-1. mark PHASE_7 as COMPLETED
-2. mark PHASE_8 as ACTIVE
+1. mark PHASE_8 as COMPLETED
+2. mark PHASE_9 as ACTIVE
 3. continue only if explicitly requested
 
 ---
@@ -1413,5 +1414,5 @@ Do not jump to future phases before completing the active phase.
 Current active phase:
 
 ```text
-PHASE_8
+PHASE_9
 ```

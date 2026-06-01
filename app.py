@@ -6,6 +6,7 @@ from src import database
 from src.pages.account import account_page
 from src.pages.backtest import backtest_page
 from src.pages.dashboard import dashboard_page
+from src.pages.data_health import data_health_page
 from src.pages.diagnostics import diagnostics_page
 from src.pages.factors import factors_page
 from src.pages.new_trade import new_trade_page
@@ -33,6 +34,7 @@ PAGES = {
     "Trade History": trade_history_page,
     "Watchlist": watchlist_page,
     "Data Diagnostics": diagnostics_page,
+    "Data Health": data_health_page,
 }
 
 
