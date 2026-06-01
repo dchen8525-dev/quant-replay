@@ -38,6 +38,7 @@ app.py
   -> src/strength.py          watchlist and category strength ranking
   -> src/review.py            deterministic trade review reports
   -> src/factors/*            factor library, ranking, IC, quantile evaluation
+  -> src/portfolio/*          portfolio construction, exposure, rebalance, risk metrics
   -> src/analyzer.py          PnL, drawdown, stop-loss, benchmark, tag stats
   -> src/charts.py            Plotly charts
 ```
@@ -88,6 +89,7 @@ The app supports local backup workflows:
 - Watchlist strength ranking and category strength analysis
 - Review reports by tag, category, and confidence
 - Factor research: simple technical factors, next-return evaluation, rank IC, quantile returns
+- Portfolio Lab: equal weight, score-weighted, risk-adjusted portfolios, exposure limits, rebalance simulation
 - Historical daily price fetch and SQLite cache
 - Trade analysis: final return, profit, max floating profit/loss, max drawdown, holding days
 - Stop-loss simulation at 3%, 5%, 8%, and 10%
@@ -130,6 +132,16 @@ The Factor Research page evaluates simple technical factors for watchlist stocks
 
 It reports factor ranking, next 5d/20d returns, rank IC, win rate by factor quantile, and average return by quantile. It uses cached/local price data through the same provider abstraction and does not require financial statement data.
 
+## Portfolio Lab
+
+The Portfolio Lab page builds simple watchlist portfolios using:
+
+- equal weight
+- score-weighted allocation
+- risk-adjusted allocation
+
+It supports max single-position limits, category exposure limits, cash reserve, weekly/monthly/quarterly rebalancing, benchmark comparison, turnover, volatility, max drawdown, Sharpe-like ratio, category exposure, and single-stock exposure.
+
 ## Screenshots
 
 Screenshots will be added after the UI stabilizes.
@@ -146,8 +158,8 @@ PHASE_1 ✅ COMPLETED
 PHASE_2 ✅ COMPLETED
 PHASE_3 ✅ COMPLETED
 PHASE_4 ✅ COMPLETED
-PHASE_5 🔄 ACTIVE
-PHASE_6 ⏳ PLANNED
+PHASE_5 ✅ COMPLETED
+PHASE_6 🔄 ACTIVE
 PHASE_7 ⏳ PLANNED
 PHASE_8 ⏳ PLANNED
 PHASE_9 ⏳ PLANNED
