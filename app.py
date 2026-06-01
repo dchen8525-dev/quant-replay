@@ -9,6 +9,7 @@ from src.pages.dashboard import dashboard_page
 from src.pages.data_health import data_health_page
 from src.pages.diagnostics import diagnostics_page
 from src.pages.factors import factors_page
+from src.pages.market_regime import market_regime_page
 from src.pages.new_trade import new_trade_page
 from src.pages.portfolio import portfolio_page
 from src.pages.research import research_page
@@ -24,6 +25,7 @@ PAGES = {
     "Strategy Backtest": backtest_page,
     "Simulated Account": account_page,
     "Strength Ranking": strength_page,
+    "Market Regime": market_regime_page,
     "Review Report": review_page,
     "Factor Research": factors_page,
     "Portfolio Lab": portfolio_page,

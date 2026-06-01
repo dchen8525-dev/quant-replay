@@ -42,6 +42,7 @@ app.py
   -> src/strategy_lab/*       strategy registry, parameter grid, walk-forward, experiment history
   -> src/research/*           markdown/html/csv reports, snapshots, reproducibility metadata
   -> src/data_quality/*       data health, repair, provider comparison, observed calendars
+  -> src/regime/*             market regime and category rotation analysis
   -> src/analyzer.py          PnL, drawdown, stop-loss, benchmark, tag stats
   -> src/charts.py            Plotly charts
 ```
@@ -96,6 +97,7 @@ The app supports local backup workflows:
 - Strategy Lab: strategy registry, parameter grid search, walk-forward testing, experiment history
 - Research Reports: markdown/html/csv exports, research snapshots, snapshot comparison
 - Data Health: cache health, provider comparison, optional Baostock/Tushare hooks
+- Market Regime: benchmark trend/volatility/risk labels and category rotation analysis
 - Historical daily price fetch and SQLite cache
 - Trade analysis: final return, profit, max floating profit/loss, max drawdown, holding days
 - Stop-loss simulation at 3%, 5%, 8%, and 10%
@@ -168,6 +170,10 @@ The Research Reports page generates local research artifacts for trade review, s
 
 The Data Health page compares providers, checks cache coverage, and reports anomalies such as duplicate dates, missing closes, zero or negative prices, non-monotonic dates, and empty ranges. Tencent, Eastmoney, Mock, and optional Baostock providers can be compared. Tushare is optional and only works when `TUSHARE_TOKEN` is configured.
 
+## Market Regime
+
+The Market Regime page classifies a selected benchmark into bull trend, bear trend, sideways, high/low volatility, and risk-on/risk-off labels using MA20/MA60 position, drawdown from the 60-day high, and 20-day volatility percentile. It also ranks watchlist categories by recent returns and MA20 persistence to highlight strong, weakening, and improving categories.
+
 ## Screenshots
 
 Screenshots will be added after the UI stabilizes.
@@ -188,8 +194,8 @@ PHASE_5 ✅ COMPLETED
 PHASE_6 ✅ COMPLETED
 PHASE_7 ✅ COMPLETED
 PHASE_8 ✅ COMPLETED
-PHASE_9 🔄 ACTIVE
-PHASE_10 ⏳ PLANNED
+PHASE_9 ✅ COMPLETED
+PHASE_10 🔄 ACTIVE
 ```
 
-Next active phase: portfolio construction and risk management.
+Next active phase: product polish and stable release preparation.
